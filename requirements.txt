@@ -1,0 +1,12 @@
+# Зависимости бота Smartika.
+# Установка:  pip install -r requirements.txt
+
+aiogram>=3.4,<4.0      # Telegram-бот
+aiohttp>=3.9           # сервер для приёма webhook от ЮКассы
+yookassa>=3.0          # приём платежей ЮКасса
+python-dotenv>=1.0     # чтение секретов из .env
+
+# Только для Windows-сервера с 1С: COM-соединение с файловой базой.
+# На других ОС не ставится и не нужен — бот тогда работает в тестовом
+# режиме (ONEC_ENABLED=false) и выдаёт коды TEST-CODE-...
+pywin32>=306; sys_platform == "win32"
