@@ -1,5 +1,4 @@
 from __future__ import annotations
-# handlers/products.py
 from pathlib import Path
 from aiogram import Router, types, F
 from aiogram.types import BufferedInputFile

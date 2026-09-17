@@ -1,5 +1,4 @@
 from __future__ import annotations
-# database.py
 import sqlite3
 import json
 from threading import Lock
@@ -8,7 +7,6 @@ conn = sqlite3.connect('user_data.db', check_same_thread=False)
 cursor = conn.cursor()
 lock = Lock()
 
-# Таблица пользователей
 cursor.execute('''CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
     cart TEXT,
@@ -19,8 +17,6 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS users (
     purchases TEXT
 )''')
 
-# Таблица ожидающих оплаты заказов (pending)
-# Заказ создаётся при отправке ссылки ЮКассы, удаляется после успешного webhook
 cursor.execute('''CREATE TABLE IF NOT EXISTS pending_orders (
     order_id TEXT PRIMARY KEY,
     data TEXT,
@@ -29,7 +25,6 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS pending_orders (
 
 conn.commit()
 
-# Глобальные данные
 user_cart = {}
 user_history = {}
 user_referral_codes = {}
@@ -67,10 +62,6 @@ def save_user_data(user_id):
         )
         conn.commit()
 
-
-# ============================================================
-# Pending orders — заказы ожидающие подтверждения ЮКассы
-# ============================================================
 
 def save_pending_order(order_id: str, data: dict):
     with lock:

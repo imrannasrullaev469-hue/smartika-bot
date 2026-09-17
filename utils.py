@@ -1,5 +1,4 @@
 from __future__ import annotations
-# utils.py
 from pathlib import Path
 
 from aiogram import types

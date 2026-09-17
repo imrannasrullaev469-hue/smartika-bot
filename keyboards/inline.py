@@ -1,5 +1,4 @@
 from __future__ import annotations
-# keyboards/inline.py
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -97,7 +96,7 @@ def quantity_inline() -> InlineKeyboardMarkup:
     builder.button(text='5', callback_data='quantity_5')
     builder.button(text='10', callback_data='quantity_10')
     builder.button(text='Назад в главное меню', callback_data='back_main')
-    builder.adjust(5, 1)  # 5 кнопок количества + 1 назад
+    builder.adjust(5, 1)
     return builder.as_markup()
 
 

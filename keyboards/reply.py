@@ -1,5 +1,4 @@
 from __future__ import annotations
-# keyboards/reply.py
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 

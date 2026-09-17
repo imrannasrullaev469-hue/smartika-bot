@@ -1,15 +1,4 @@
 from __future__ import annotations
-# services/onec.py
-# ============================================================
-# ИНТЕГРАЦИЯ С 1С УНФ ЧЕРЕЗ COM (прямое соединение к файловой базе,
-# в обход веб-сервиса/лицензии).
-# Зависимость: pywin32 (win32com, pythoncom).
-# РАБОТАЕТ ТОЛЬКО НА СЕРВЕРЕ, где лежит файловая база 1С (путь — ONEC_BASE_PATH).
-#
-# В 1С: расширение BotLicenses, общий модуль bl_BotAPI (галка «Внешнее
-# соединение»), функция GetCodes(Product, OrderId, Quantity) -> строка
-# вида "код;код;...". Бот разбивает её по ";".
-# ============================================================
 
 import logging
 import asyncio
@@ -18,10 +7,6 @@ from config import ONEC_ENABLED, ONEC_CONNECTION_STRING
 
 logger = logging.getLogger(__name__)
 
-# ВАЖНО: импортируем COM-модули в ГЛАВНОМ потоке при загрузке модуля.
-# Первый импорт pywin32 внутри рабочего потока asyncio роняет процесс
-# (access violation), поэтому грузим заранее здесь. На не-Windows —
-# просто пропускаем (бот всё равно запускается только на сервере).
 try:
     import pythoncom
     import win32com.client
@@ -37,7 +22,6 @@ def _get_codes_sync(product_name, order_id, quantity):
         connector = win32com.client.Dispatch("V83.COMConnector")
         ib = connector.Connect(ONEC_CONNECTION_STRING)
         result = ib.bl_BotAPI.GetCodes(str(product_name), str(order_id), int(quantity))
-        # 1С возвращает "код1;код2;..." — разбиваем в список
         return [c for c in str(result).split(";") if c]
     finally:
         pythoncom.CoUninitialize()
@@ -56,7 +40,6 @@ async def get_activation_code(product_name: str, order_id: str, quantity: int = 
     if not _COM_OK:
         raise RuntimeError("pywin32 (COM) недоступен — бот должен работать на сервере с 1С")
     try:
-        # COM синхронный — выполняем в отдельном потоке, чтобы не блокировать бота
         return await asyncio.to_thread(_get_codes_sync, product_name, order_id, quantity)
     except Exception as e:
         logger.error(f"Ошибка получения кодов из 1С через COM: {e}")
@@ -70,7 +53,6 @@ async def confirm_shipment(order_id: str, codes: list) -> bool:
     """
     if not ONEC_ENABLED:
         return True
-    # TODO: вызвать функцию подтверждения отгрузки в 1С через COM
     return True
 
 
@@ -81,5 +63,4 @@ async def check_stock(product_name: str) -> int:
     """
     if not ONEC_ENABLED:
         return -1
-    # TODO: добавить функцию остатков и вызвать через COM
     return -1

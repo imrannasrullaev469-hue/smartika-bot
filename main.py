@@ -1,5 +1,4 @@
 from __future__ import annotations
-# main.py
 import asyncio
 import logging
 
@@ -36,7 +35,6 @@ dp.include_router(callbacks_router)
 async def main():
     load_all_user_data()
 
-    # Запускаем webhook-сервер и бота параллельно
     webhook_runner = await start_webhook_server(bot)
 
     logging.info("Бот запущен. Начало поллинга...")
@@ -44,7 +42,6 @@ async def main():
         await dp.start_polling(bot)
     finally:
         await webhook_runner.cleanup()
-
 
 if __name__ == "__main__":
     try:

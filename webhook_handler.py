@@ -1,10 +1,4 @@
 from __future__ import annotations
-# webhook_handler.py
-# ============================================================
-# Сервер для приёма webhook-уведомлений от ЮКассы
-# Запускается параллельно с ботом
-# Установка: pip install aiohttp
-# ============================================================
 
 import json
 import logging
@@ -20,14 +14,6 @@ logger = logging.getLogger(__name__)
 
 async def yukassa_webhook_handler(request: web.Request) -> web.Response:
     """Принимает POST-запросы от ЮКассы"""
-
-    # Проверяем подпись (раскомментировать после подключения ЮКассы)
-    # signature = request.headers.get("X-Request-Signature", "")
-    # body = await request.read()
-    # if not verify_webhook_signature(body, signature):
-    #     logger.warning("Неверная подпись webhook от ЮКассы!")
-    #     return web.Response(status=400, text="Invalid signature")
-
     try:
         body = await request.read()
         event = json.loads(body)

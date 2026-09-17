@@ -1,8 +1,4 @@
 from __future__ import annotations
-# handlers/payments.py
-# ============================================================
-# Обработчик платежей — интеграция ЮКасса + 1С
-# ============================================================
 
 import uuid
 import logging
@@ -22,10 +18,6 @@ payments_router = Router()
 logger = logging.getLogger(__name__)
 
 
-# ============================================================
-# ШАГ 1 — Пользователь выбрал способ оплаты
-# ============================================================
-
 async def handle_payment_selection(query: types.CallbackQuery, state: FSMContext, data: str):
     user_id = query.message.chat.id
     product = user_cart[user_id]['product']
@@ -42,7 +34,6 @@ async def handle_payment_selection(query: types.CallbackQuery, state: FSMContext
     }
     payment_method = payment_methods.get(data, data)
 
-    # Сохраняем в историю
     if user_id not in user_history:
         user_history[user_id] = []
     user_history[user_id].append({
@@ -87,10 +78,6 @@ async def handle_payment_selection(query: types.CallbackQuery, state: FSMContext
     save_user_data(user_id)
 
 
-# ============================================================
-# ШАГ 2 — Создание платежа в ЮКассе
-# ============================================================
-
 async def handle_yukassa_payment(
     query: types.CallbackQuery,
     product: str,
@@ -102,7 +89,6 @@ async def handle_yukassa_payment(
     order_id = str(uuid.uuid4())
 
     try:
-        # Создаём платёж в ЮКассе
         payment = await create_payment(
             amount=float(total_price),
             description=f"{product} × {quantity}",
@@ -110,7 +96,6 @@ async def handle_yukassa_payment(
             order_id=order_id
         )
 
-        # Сохраняем pending-заказ в БД (ждём подтверждения от ЮКассы)
         save_pending_order(order_id, {
             "user_id": user_id,
             "product": product,
@@ -137,10 +122,6 @@ async def handle_yukassa_payment(
         )
 
 
-# ============================================================
-# ШАГ 3 — Webhook от ЮКассы (вызывается из webhook_handler.py)
-# ============================================================
-
 async def process_yukassa_webhook(event: dict, bot: Bot):
     """
     Вызывается когда ЮКасса присылает уведомление об оплате.
@@ -149,7 +130,6 @@ async def process_yukassa_webhook(event: dict, bot: Bot):
 
     event_type = event.get("event")
 
-    # Нас интересует только успешная оплата
     if event_type != "payment.succeeded":
         return
 
@@ -162,7 +142,6 @@ async def process_yukassa_webhook(event: dict, bot: Bot):
         logger.error(f"Webhook: нет order_id в metadata платежа {payment_id}")
         return
 
-    # Достаём данные заказа из БД
     order = get_pending_order(order_id)
     if not order:
         logger.error(f"Webhook: заказ {order_id} не найден в БД")
@@ -173,18 +152,12 @@ async def process_yukassa_webhook(event: dict, bot: Bot):
     quantity = order["quantity"]
 
     try:
-        # ========================================================
-        # ШАГ 4 — Запрашиваем коды активации из 1С
-        # ========================================================
         codes = await get_activation_code(
             product_name=product,
             order_id=order_id,
             quantity=quantity
         )
 
-        # ========================================================
-        # ШАГ 5 — Сохраняем коды пользователю
-        # ========================================================
         current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if user_id not in user_purchases:
             user_purchases[user_id] = []
@@ -197,9 +170,6 @@ async def process_yukassa_webhook(event: dict, bot: Bot):
             })
         save_user_data(user_id)
 
-        # ========================================================
-        # ШАГ 6 — Отправляем коды пользователю
-        # ========================================================
         codes_text = '\n'.join([f'`{code}`' for code in codes])
         await bot.send_message(
             user_id,
@@ -211,12 +181,8 @@ async def process_yukassa_webhook(event: dict, bot: Bot):
             parse_mode='Markdown'
         )
 
-        # ========================================================
-        # ШАГ 7 — Подтверждаем отгрузку в 1С
-        # ========================================================
         await confirm_shipment(order_id=order_id, codes=codes)
 
-        # Уведомляем менеджеров
         await bot.send_message(
             GROUP_ID,
             f'✅ Заказ выполнен!\n'
@@ -227,7 +193,6 @@ async def process_yukassa_webhook(event: dict, bot: Bot):
             f'Коды выданы: {len(codes)} шт.'
         )
 
-        # Удаляем pending-заказ
         delete_pending_order(order_id)
 
     except Exception as e:
@@ -247,10 +212,6 @@ async def process_yukassa_webhook(event: dict, bot: Bot):
             'Менеджер свяжется с вами в ближайшее время.'
         )
 
-
-# ============================================================
-# B2B — Счёт по реквизитам
-# ============================================================
 
 @payments_router.message(StateFilter(PaymentStates.requisites))
 async def handle_invoice_requisites(message: types.Message, state: FSMContext):

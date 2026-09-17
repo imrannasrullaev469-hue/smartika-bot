@@ -1,5 +1,4 @@
 from __future__ import annotations
-# handlers/cabinet.py
 from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder

@@ -1,5 +1,4 @@
 from __future__ import annotations
-# handlers/common.py
 from aiogram import Router, types, F
 from aiogram.filters import Command
 

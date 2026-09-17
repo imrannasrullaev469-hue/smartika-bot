@@ -1,5 +1,4 @@
 from __future__ import annotations
-# handlers/callbacks.py
 from aiogram import Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
@@ -10,7 +9,7 @@ from states import CallbackRequestStates
 from utils import show_main_menu, edit_message_smart
 from handlers.payments import handle_payment_selection
 from config import GROUP_ID
-from .cabinet import personal_cabinet  # ← добавь этот импорт, если его нет
+from .cabinet import personal_cabinet
 
 callbacks_router = Router()
 
@@ -25,10 +24,9 @@ async def callback_handler(query: types.CallbackQuery, state: FSMContext):
 
     if data == 'back_cabinet':
         await query.message.delete()
-        await personal_cabinet(query.message)  # ← здесь был вызов, он теперь работает
+        await personal_cabinet(query.message)
         return
 
-    # Продукты SIGMA
     sigma_products = {
         'sigma_start': {'name': 'SIGMA СТАРТ 1 год', 'price': 5900},
         'sigma_razvitie': {'name': 'SIGMA РАЗВИТИЕ 1 год', 'price': 7900},
@@ -39,7 +37,6 @@ async def callback_handler(query: types.CallbackQuery, state: FSMContext):
         await handle_product_selection(query, sigma_products[data])
         return
 
-    # Продукты FRONTOL
     frontol_products = {
         'frontol_basic': {'name': 'ПО Frontol - Тариф "Базовый" на 1 год', 'price': 7000},
         'frontol_full': {'name': 'ПО Frontol - Тариф "Полный" на 1 год', 'price': 14000},
@@ -51,7 +48,6 @@ async def callback_handler(query: types.CallbackQuery, state: FSMContext):
         await handle_product_selection(query, frontol_products[data])
         return
 
-    # Категории OFD
     ofd_categories = {
         'ofd_category_taxcom': {
             'name': 'ТАКСКОМ',
@@ -75,7 +71,6 @@ async def callback_handler(query: types.CallbackQuery, state: FSMContext):
         await edit_message_smart(query.message, text, 'Markdown', category['markup'])
         return
 
-    # Продукты OFD
     ofd_products = {
         'ofd_taxcom_15': {'name': 'ОФД Такском на 15 мес.', 'price': 3000},
         'ofd_taxcom_36': {'name': 'ОФД Такском на 36 мес.', 'price': 7000},
@@ -95,7 +90,6 @@ async def callback_handler(query: types.CallbackQuery, state: FSMContext):
         await handle_product_selection(query, product)
         return
 
-    # Количество
     quantity_map = {
         'quantity_1': 1,
         'quantity_2': 2,
@@ -107,7 +101,6 @@ async def callback_handler(query: types.CallbackQuery, state: FSMContext):
         await handle_quantity_selection(query, quantity_map[data])
         return
 
-    # Платежи
     if data.startswith('payment_') and user_id in user_cart:
         await handle_payment_selection(query, state, data)
         return
